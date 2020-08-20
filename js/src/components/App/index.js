@@ -1,76 +1,126 @@
 import React from "react";
 
 import FileInput from "../FileInput";
+import ResultTable from "../ResultTable";
 
-// const ENDPOINT = "http://127.0.0.1:8000";
-const ENDPOINT = "http://34.209.140.45";
-const HEALTH = "/healthz";
-const STATUS = "/status";
-const SEPARATE = "/separate";
+// This is being loaded on the HTML head
+const Algorithmia = window.Algorithmia;
 
 class App extends React.Component {
     constructor(props) {
         super(props);
 
+        this.client = Algorithmia.client("simhcwLH5wkxwTnyMVJFazxsHqG1");
+
+        // const testResults = {
+        //     bass: "670f09de-0c8a-4108-bab1-c3553cf2ee09-bass.mp3",
+        //     drums: "670f09de-0c8a-4108-bab1-c3553cf2ee09-drums.mp3",
+        //     other: "670f09de-0c8a-4108-bab1-c3553cf2ee09-other.mp3",
+        //     vocals: "670f09de-0c8a-4108-bab1-c3553cf2ee09-vocals.mp3",
+        // };
+
         this.state = {
-            apiStatus: "",
-            splited: "",
+            apiStatus: "init",
+            results: "",
+            // results: testResults,
             error: "",
             converting: false,
         };
     }
 
     componentDidMount() {
-        this.setState({ apiStatus: "none" });
+        this.client
+            .algo("danielfrg/demucs/0.2.0")
+            .pipe({ health: "" })
+            .then((response) => {
+                if (response.error) {
+                    console.error("Error: " + response.error.message);
+                    this.setState({
+                        apiStatus: "error",
+                        error: response.error.message,
+                    });
+                } else {
+                    console.log(response);
+                    if (response.result.status == "live") {
+                        this.setState({ apiStatus: "loading" });
 
-        fetch(ENDPOINT + HEALTH)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data == "ok") {
-                    this.setState({ apiStatus: "loading model" });
-                    fetch(ENDPOINT + STATUS)
-                        .then((response) => response.json())
-                        .then((data) => {
-                            if (data == "model_loaded") {
-                                this.setState({ apiStatus: "ready" });
-                            }
-                        })
-                        .catch((error) =>
-                            this.setState({ apiStatus: "error", error: error })
-                        );
+                        this.client
+                            .algo("danielfrg/demucs/0.2.0")
+                            .pipe({ load: "" })
+                            .then((response) => {
+                                if (response.error) {
+                                    console.error(
+                                        "Error: " + response.error.message
+                                    );
+                                    this.setState({
+                                        apiStatus: "error",
+                                        error: response.error.message,
+                                    });
+                                } else {
+                                    console.log(response);
+                                    this.setState({ apiStatus: "ready" });
+                                }
+                            });
+                    } else if (response.result.status == "model_loaded") {
+                        this.setState({ apiStatus: "ready" });
+                    }
                 }
-            })
-            .catch((error) =>
-                this.setState({ apiStatus: "error", error: error })
-            );
+            });
     }
 
-    request = (file) => {
-        this.setState({ converting: true });
-        const formData = new FormData();
-        formData.append("file", file);
+    bufferToBase64 = (buffer) => {
+        var bytes = new Uint8Array(buffer);
+        var len = buffer.byteLength;
+        var binary = "";
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    };
 
-        fetch(ENDPOINT + SEPARATE, {
-            method: "POST",
-            body: formData,
-        })
-            .then((response) => response.json())
-            .then((success) => {
-                this.setState({ splited: success, converting: false });
-                console.log(success);
-            })
-            .catch((error) => {
-                console.log(error);
-                this.setState({ error: error, converting: false });
-            });
+    request = (file) => {
+        var reader = new FileReader();
+        reader.onload = (event) => {
+            const base64_file = this.bufferToBase64(event.target.result);
+
+            this.setState({ converting: true });
+            this.client
+                .algo("danielfrg/demucs/0.2.0")
+                .pipe({ predict: { base64: base64_file } })
+                .then((response) => {
+                    if (response.error) {
+                        console.error("Error: " + response.error.message);
+                        this.setState({
+                            apiStatus: "error",
+                            error: response.error.message,
+                        });
+                    } else {
+                        console.log(response);
+                        this.setState({
+                            converting: false,
+                            results: response.result,
+                        });
+                    }
+                });
+        };
+        reader.readAsArrayBuffer(file);
     };
 
     render() {
+        let statusText = "";
+        if (this.state.apiStatus == "init") {
+            statusText = "Initializing API (~1-2 mins)";
+        } else if (this.state.apiStatus == "loading") {
+            statusText = "Loading model (~5 mins)";
+        } else if (this.state.apiStatus == "ready") {
+            statusText = "Model ready";
+        }
+
         const apiStatus = (
-            <p className="api-status">API Status: {this.state.apiStatus}</p>
+            <p className="api-status">API Status: {statusText}</p>
         );
 
-        if (this.state.apiStatus != "ready") {
+        if (this.state.apiStatus !== "ready") {
             return apiStatus;
         }
 
@@ -83,88 +133,12 @@ class App extends React.Component {
             );
         }
 
-        let waiting = "";
-
+        let results = "";
         if (this.state.converting === true) {
-            waiting = <div className="loader">... converting ...</div>;
-        }
-
-        let splited = "";
-
-        if (this.state.splited) {
-            splited = (
-                <table className="audio-table">
-                    <tbody>
-                        <tr>
-                            <th>Instrument</th>
-                            <th>Track</th>
-                        </tr>
-                        <tr>
-                            <td>Drums</td>
-                            <td>
-                                <audio controls>
-                                    <track kind="captions"></track>
-                                    <source
-                                        src={
-                                            ENDPOINT +
-                                            "/" +
-                                            this.state.splited.drums
-                                        }
-                                        type="audio/mp3"
-                                    />
-                                </audio>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Bass</td>
-                            <td>
-                                <audio controls>
-                                    <track kind="captions"></track>
-                                    <source
-                                        src={
-                                            ENDPOINT +
-                                            "/" +
-                                            this.state.splited.bass
-                                        }
-                                        type="audio/mp3"
-                                    />
-                                </audio>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Other</td>
-                            <td>
-                                <audio controls>
-                                    <track kind="captions"></track>
-                                    <source
-                                        src={
-                                            ENDPOINT +
-                                            "/" +
-                                            this.state.splited.other
-                                        }
-                                        type="audio/mp3"
-                                    />
-                                </audio>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Vocals</td>
-                            <td>
-                                <audio controls>
-                                    <track kind="captions"></track>
-                                    <source
-                                        src={
-                                            ENDPOINT +
-                                            "/" +
-                                            this.state.splited.vocals
-                                        }
-                                        type="audio/mp3"
-                                    />
-                                </audio>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            results = <div className="loader">... converting ...</div>;
+        } else if (this.state.results) {
+            results = (
+                <ResultTable client={this.client} {...this.state.results} />
             );
         }
 
@@ -172,8 +146,7 @@ class App extends React.Component {
             <React.Fragment>
                 {apiStatus}
                 <FileInput request={this.request} />
-                {waiting}
-                {splited}
+                {results}
             </React.Fragment>
         );
     }

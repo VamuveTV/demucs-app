@@ -17,6 +17,7 @@
     ],
     "main": "src/main.js",
     "dependencies": {
+        "algorithmia": "^0.3.10",
         "react": "^16.13.1",
         "react-dom": "^16.13.1",
         "react-router-dom": "^5.2.0"
@@ -55,10 +56,10 @@
         "webpack-dev-server": "^3.11.0"
     },
     "scripts": {
-        "dev": "webpack --watch --mode=development",
-        "devserver": "webpack-dev-server --mode=development",
-        "dev:prod": "webpack --watch --mode=production",
+        "dev": "webpack-dev-server --mode=development",
+        "dev:noserver": "webpack --watch --mode=development",
         "build": "webpack --mode=production",
+        "build:watch": "webpack --mode=production --watch",
         "fmt": "prettier --write \"src/**/*.{js,jsx}\"",
         "lint": "eslint \"src/**/*.{js,jsx}\" --quiet",
         "clean": "rm -rf .cache/ dist/ lib/",

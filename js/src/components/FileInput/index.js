@@ -9,9 +9,7 @@ class FileInput extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
-        console.log(
-            `Sending selected file: ${this.fileInput.current.files[0].name}`
-        );
+        console.log(`Selected file: ${this.fileInput.current.files[0].name}`);
 
         this.props.request(this.fileInput.current.files[0]);
     }

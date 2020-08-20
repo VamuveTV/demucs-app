@@ -74,6 +74,9 @@ module.exports = [
         // path: distRoot,
         // },
         module: { rules: rules },
+        node: {
+            fs: "empty",
+        },
         mode: "development",
         devtool: "source-map",
         devServer: {

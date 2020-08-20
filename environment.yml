@@ -1,0 +1,19 @@
+name: demucs-cpu
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python==3.8
+  - pip
+  - black
+  ##
+  - pytorch=1.4.0
+  - scipy
+  - ffmpeg
+  - pip:
+    - requests
+    - tqdm
+    - lameenc
+    - musdb
+    - museval
+    - treetable
