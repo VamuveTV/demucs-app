@@ -126,6 +126,6 @@ def upload_file(
     username="danielfrg",
     collection="demucs_output",
 ):
-    remote_file = f"{data}://{username}/{collection}/{fname}"
+    remote_file = f"{connector}://{username}/{collection}/{fname}"
     algo_client.file(remote_file).putFile(local_filename)
     return remote_file
