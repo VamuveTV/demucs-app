@@ -6,4 +6,3 @@ lameenc==1.2.2
 musdb==0.3.1
 museval==0.3.0
 requests==2.22
-imageio-ffmpeg==0.4.2
