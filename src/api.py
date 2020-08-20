@@ -94,7 +94,7 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
                 fname = os.path.basename(file)
                 key = f"{unique_id}-{fname}"
 
-                algorithmia_utils.upload_algo_temp_file(file, key)
+                algorithmia_utils.upload_file(file, key)
                 generated_files[source_name] = key
 
         return generated_files

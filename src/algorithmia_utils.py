@@ -120,13 +120,12 @@ def get_file(fname, target_name=None):
 
 
 def upload_file(
-    local_filename, remote_fname, username="danielfrg", collection="demucs_output"
+    local_filename,
+    fname,
+    connector="data",
+    username="danielfrg",
+    collection="demucs_output",
 ):
-    location = f"data://{username}/{collection}/"
-
-    if not algo_client.dir(algo_temp_dir).exists():
-        algo_client.dir(algo_temp_dir).create()
-
-    remote_file = algo_temp_dir + remote_fname
+    remote_file = f"{data}://{username}/{collection}/{fname}"
     algo_client.file(remote_file).putFile(local_filename)
     return remote_file
