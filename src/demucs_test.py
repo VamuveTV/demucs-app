@@ -1,4 +1,35 @@
-from . import demucs
+api = None
 
-def test_demucs():
-    assert demucs.apply("Jane") == "hello Jane"
+
+def get_api():
+    global api
+    if api is None:
+        try:
+            from .api import DemucsAPI
+        except Exception:
+            from api import DemucsAPI
+
+        api = DemucsAPI()
+    return api
+
+
+def apply(input):
+    try:
+        api = get_api()
+        return api.apply(input)
+    except Exception as ex:
+        raise ex
+
+
+if __name__ == "__main__":
+    # print(apply({"ping": ""}))
+    # print(apply({"debug": ""}))
+    # print(apply({"health": ""}))
+    # print(apply({"load": ""}))
+    # print(apply({"health": ""}))
+
+    # print(apply({"predict": {"fpath": "./tracks/mixture-1.mp3"}}))
+
+    with open("./tracks/mixture-1.txt") as f:
+        base64_content = f.read()
+        print(apply({"predict": {"base64": base64_content}}))
