@@ -21,11 +21,16 @@ class BaseAPI(object):
         if self._model is None:
             print("BaseAPI: Loading model")
             self._model = self.load_model()
+            print("BaseAPI: Model loaded")
         return self._model
 
     model = property(get_model)
 
     def load_model(self):
+        """Subclasses must implement this method
+
+        It should return an object that will be available as the .model property
+        """
         raise NotImplementedError
 
     def apply(self, input):
@@ -64,26 +69,26 @@ class BaseAPI(object):
 
         return data
 
-    def debug_info(self, input):
-        raise {}
+    def debug_info(self):
+        return {}
 
     def predict(self, input):
         raise NotImplementedError
 
 
-def extract_file(file, output_dir="models"):
+def extract_tar_gz(file, output_dir="./models"):
     """
-    Extract a .tar.gz file that is downloaded by Algorithmia client
+    Extract a .tar.gz
 
-    Files downloaded by the Algoritmia client don't have an extension and are
-    located undere /tmp e.g.: /tmp/tmpsva98zf4
+    Parameters
+    ----------
+        output_dir (default="./models"): Where to extract the .tar.gz
 
-    Files are extracted to ./models
+    Returns
+    ------
+        output_dir: full path to the output directory where files where extracted
     """
-    # Make models dir for the original code
-    this_path = os.path.dirname(os.path.realpath(__file__))
-    output_dir = os.path.join(this_path, "models")
-    os.mkdir(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     try:
         output = subprocess.check_output(
@@ -91,41 +96,44 @@ def extract_file(file, output_dir="models"):
             stderr=subprocess.STDOUT,
             shell=True,
         ).decode()
-        success = True
     except subprocess.CalledProcessError as ex:
         output = ex.output.decode()
-        raise Exception("Could not extract model: %s" % ex)
+        raise Exception("Could not extract file: %s" % output)
 
-    return success
+    return os.path.realpath(os.path.join(output_dir))
 
 
-def get_file(fname, target_name=None):
+def get_file(remote_fpath):
     """
     Download a file hosted on Algorithmia Hosted Data
 
     If the file ends with .tar.gz it will untar the file.
+    It's recommended that the tar files contains a single files compressed like:
+        tar -czvf model.format.tar.gz model.format
+
+    Returns the local file path of the downloaded file
     """
-    target_name = target_name if target_name is not None else fname
+    basename = os.path.basename(remote_fpath)
 
-    if fname.startswith("data://"):
+    if remote_fpath.startswith("data://"):
         # Download from Algoritmia hosted data
-        fname = algo_client.file(fname).getFile().name
-        target_name = fname
+        local_fpath = algo_client.file(remote_fpath).getFile().name
 
-        if fname.endswith(".tar.gz"):
-            target_name = os.path.basename(fname)[:-7]
-            extract_file(fname)
+        if basename.endswith(".tar.gz"):
+            output_dir = extract_tar_gz(fname)
+            no_ext = basename[: -len(".tar.gz")]
+            local_fpath = os.path.join(output_dir, no_ext)
 
-    return target_name
+        return local_fpath
 
 
 def upload_file(
-    local_filename,
-    fname,
-    connector="data",
-    username="danielfrg",
-    collection="demucs_output",
+    local_filename, username, collection, fname, connector="data",
 ):
     remote_file = f"{connector}://{username}/{collection}/{fname}"
     algo_client.file(remote_file).putFile(local_filename)
     return remote_file
+
+
+if __name__ == "__main__":
+    print(extract_tar_gz("./models/text8.bin.tar.gz"))

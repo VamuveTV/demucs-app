@@ -9,9 +9,20 @@ class FileInput extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
-        console.log(`Selected file: ${this.fileInput.current.files[0].name}`);
 
-        this.props.request(this.fileInput.current.files[0]);
+        const file = this.fileInput.current.files[0];
+        if (!file) {
+            return;
+        }
+
+        const sizeMB = file.size / 1024 / 1024;
+        if (sizeMB > 5) {
+            alert("File is to big. Max size: 5 MB");
+            return;
+        }
+
+        console.log(`Selected file: ${file.name}`);
+        this.props.request(file);
     }
 
     render() {
@@ -26,8 +37,11 @@ class FileInput extends React.Component {
                             className="file-picker"
                         />
                     </label>
-                    <br />
-                    <button type="submit" className="btn btn-light">
+                    <button
+                        type="submit"
+                        className="btn btn-light"
+                        disabled={!this.props.enabled}
+                    >
                         Submit
                     </button>
                 </form>

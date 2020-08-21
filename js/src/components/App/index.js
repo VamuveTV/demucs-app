@@ -1,16 +1,15 @@
-import React from "react";
+import React, { Fragment } from "react";
+import Loader from "react-loaders";
 
 import FileInput from "../FileInput";
 import ResultTable from "../ResultTable";
-
-// This is being loaded on the HTML head
-const Algorithmia = window.Algorithmia;
+import DemucsAPI from "./algorithms";
 
 class App extends React.Component {
     constructor(props) {
         super(props);
 
-        this.client = Algorithmia.client("simhcwLH5wkxwTnyMVJFazxsHqG1");
+        this.client = new DemucsAPI();
 
         // const testResults = {
         //     bass: "670f09de-0c8a-4108-bab1-c3553cf2ee09-bass.mp3",
@@ -29,43 +28,32 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        this.client
-            .algo("danielfrg/demucs/0.2.0")
-            .pipe({ health: "" })
-            .then((response) => {
-                if (response.error) {
-                    console.error("Error: " + response.error.message);
-                    this.setState({
-                        apiStatus: "error",
-                        error: response.error.message,
-                    });
-                } else {
-                    console.log(response);
-                    if (response.result.status == "live") {
-                        this.setState({ apiStatus: "loading" });
+        this.client.health().then((response) => {
+            if (response.error) {
+                this.setState({
+                    apiStatus: "error",
+                    error: response.error,
+                });
+            } else {
+                console.log(response);
+                if (response.result.status == "live") {
+                    this.setState({ apiStatus: "loading" });
 
-                        this.client
-                            .algo("danielfrg/demucs/0.2.0")
-                            .pipe({ load: "" })
-                            .then((response) => {
-                                if (response.error) {
-                                    console.error(
-                                        "Error: " + response.error.message
-                                    );
-                                    this.setState({
-                                        apiStatus: "error",
-                                        error: response.error.message,
-                                    });
-                                } else {
-                                    console.log(response);
-                                    this.setState({ apiStatus: "ready" });
-                                }
+                    this.client.load().then((response) => {
+                        if (response.error) {
+                            this.setState({
+                                apiStatus: "error",
+                                error: response.error,
                             });
-                    } else if (response.result.status == "model_loaded") {
-                        this.setState({ apiStatus: "ready" });
-                    }
+                        } else {
+                            this.setState({ apiStatus: "ready" });
+                        }
+                    });
+                } else if (response.result.status == "model_loaded") {
+                    this.setState({ apiStatus: "ready" });
                 }
-            });
+            }
+        });
     }
 
     bufferToBase64 = (buffer) => {
@@ -84,24 +72,20 @@ class App extends React.Component {
             const base64_file = this.bufferToBase64(event.target.result);
 
             this.setState({ converting: true });
-            this.client
-                .algo("danielfrg/demucs/0.2.0")
-                .pipe({ predict: { base64: base64_file } })
-                .then((response) => {
-                    if (response.error) {
-                        console.error("Error: " + response.error.message);
-                        this.setState({
-                            apiStatus: "error",
-                            error: response.error.message,
-                        });
-                    } else {
-                        console.log(response);
-                        this.setState({
-                            converting: false,
-                            results: response.result,
-                        });
-                    }
-                });
+            this.client.separate(base64_file).then((response) => {
+                if (response.error) {
+                    console.error("Error: " + response.error);
+                    this.setState({
+                        error: response.error,
+                    });
+                } else {
+                    console.log(response);
+                    this.setState({
+                        converting: false,
+                        results: response.result,
+                    });
+                }
+            });
         };
         reader.readAsArrayBuffer(file);
     };
@@ -114,23 +98,55 @@ class App extends React.Component {
             statusText = "Loading model (~5 mins)";
         } else if (this.state.apiStatus == "ready") {
             statusText = "Model ready";
+        } else if (this.state.apiStatus == "error") {
+            statusText = "Error";
+        } else {
+            statusText = this.state.apiStatus;
         }
 
-        const apiStatus = (
-            <p className="api-status">API Status: {statusText}</p>
+        const spinnerEl = (
+            <div className="spinner-border" role="status">
+                <span className="sr-only">Loading...</span>
+            </div>
         );
 
-        if (this.state.apiStatus !== "ready") {
-            return apiStatus;
-        }
+        const apiStatus = (
+            <div className="status-line">
+                <p className="api-status">API Status: {statusText}</p>
+                {this.state.apiStatus == "ready" ||
+                this.state.apiStatus == "error"
+                    ? ""
+                    : spinnerEl}
+            </div>
+        );
 
         if (this.state.error) {
-            return (
-                <React.Fragment>
-                    {apiStatus}
-                    <p className="error">ERROR: {this.state.error}</p>
-                </React.Fragment>
-            );
+            if (
+                typeof this.state.error === "string" ||
+                this.state.error instanceof String
+            ) {
+                return (
+                    <Fragment>
+                        {apiStatus}
+                        <p className="error">Error: {this.state.error}</p>
+                    </Fragment>
+                );
+            } else {
+                return (
+                    <Fragment>
+                        {apiStatus}
+                        <p className="error">
+                            {this.state.error.error_type
+                                ? this.state.error.error_type
+                                : "Error"}
+                            : {this.state.error.message}
+                        </p>
+                        <p className="error text-left">
+                            {this.state.error.stacktrace}
+                        </p>
+                    </Fragment>
+                );
+            }
         }
 
         let results = "";
@@ -145,7 +161,10 @@ class App extends React.Component {
         return (
             <React.Fragment>
                 {apiStatus}
-                <FileInput request={this.request} />
+                <FileInput
+                    enabled={this.state.apiStatus == "ready"}
+                    request={this.request}
+                />
                 {results}
             </React.Fragment>
         );

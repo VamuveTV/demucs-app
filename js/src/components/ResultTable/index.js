@@ -1,10 +1,12 @@
 import React from "react";
-
-const Algorithmia = window.Algorithmia;
+import Base64DataConverter from "./algorithm";
+import Player from "./player";
 
 class ResultTable extends React.Component {
     constructor(props) {
         super(props);
+
+        this.client = new Base64DataConverter();
 
         this.state = {
             drums: "",
@@ -14,103 +16,88 @@ class ResultTable extends React.Component {
         };
     }
 
-    componentDidMount() {
-        const { client, drums, bass, other, vocals } = this.props;
+    // componentDidMount() {
+    //     const { drums, bass, other, vocals } = this.props;
 
-        const items = {
-            drums: drums,
-            bass: bass,
-            other: other,
-            vocals: vocals,
-        };
+    //     const items = {
+    //         drums: drums,
+    //         bass: bass,
+    //         other: other,
+    //         vocals: vocals,
+    //     };
 
-        for (let source in items) {
-            var algo_file_path = `data://danielfrg/demucs_output/${items[source]}`;
-            client
-                .algo("ANaimi/Base64DataConverter/0.1.2?timeout=300") // timeout is optional
-                .pipe(algo_file_path)
-                .then((output) => {
-                    console.log(source);
-                    console.log(output);
-                    this.setState({
-                        [source]: output.result,
-                    });
-                });
-        }
-    }
+    //     for (let source in items) {
+    //         var algoFilePath = ;
+    //     }
+    // }
 
     render() {
-        let drums, bass, other, vocals;
-        if (this.state.drums) {
-            drums = (
+        let bassEl, drumsEl, otherEl, vocalsEl;
+
+        if (this.props.bass) {
+            bassEl = (
                 // eslint-disable-next-line jsx-a11y/media-has-caption
-                <audio controls>
-                    <source
-                        src={`data:audio/mp3;base64,${this.state.drums}`}
-                        type="audio/mp3"
-                    />
-                </audio>
+                <Player
+                    client={this.client}
+                    algoFilePath={`data://danielfrg/demucs_output/${this.props.bass}`}
+                ></Player>
+            );
+        }
+        if (this.props.drums) {
+            drumsEl = (
+                // eslint-disable-next-line jsx-a11y/media-has-caption
+                <Player
+                    client={this.client}
+                    algoFilePath={`data://danielfrg/demucs_output/${this.props.drums}`}
+                ></Player>
+            );
+        }
+        if (this.props.other) {
+            otherEl = (
+                // eslint-disable-next-line jsx-a11y/media-has-caption
+                <Player
+                    client={this.client}
+                    algoFilePath={`data://danielfrg/demucs_output/${this.props.other}`}
+                ></Player>
+            );
+        }
+        if (this.props.vocals) {
+            vocalsEl = (
+                // eslint-disable-next-line jsx-a11y/media-has-caption
+                <Player
+                    client={this.client}
+                    algoFilePath={`data://danielfrg/demucs_output/${this.props.vocals}`}
+                ></Player>
             );
         }
 
-        if (this.state.bass) {
-            bass = (
-                // eslint-disable-next-line jsx-a11y/media-has-caption
-                <audio controls>
-                    <source
-                        src={`data:audio/mp3;base64,${this.state.bass}`}
-                        type="audio/mp3"
-                    />
-                </audio>
-            );
-        }
-
-        if (this.state.other) {
-            other = (
-                // eslint-disable-next-line jsx-a11y/media-has-caption
-                <audio controls>
-                    <source
-                        src={`data:audio/mp3;base64,${this.state.other}`}
-                        type="audio/mp3"
-                    />
-                </audio>
-            );
-        }
-
-        if (this.state.vocals) {
-            vocals = (
-                // eslint-disable-next-line jsx-a11y/media-has-caption
-                <audio
-                    controls
-                    src={`data:audio/mp3;base64,${this.state.vocals}`}
-                ></audio>
-            );
-        }
         return (
-            <table className="audio-table">
-                <tbody>
-                    <tr>
-                        <th>Instrument</th>
-                        <th>Track</th>
-                    </tr>
-                    <tr>
-                        <td>Drums</td>
-                        <td>{drums}</td>
-                    </tr>
-                    <tr>
-                        <td>Bass</td>
-                        <td>{bass}</td>
-                    </tr>
-                    <tr>
-                        <td>Other</td>
-                        <td>{other}</td>
-                    </tr>
-                    <tr>
-                        <td>Vocals</td>
-                        <td>{vocals}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div className="results">
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Instrument</th>
+                            <th>Track</th>
+                        </tr>
+                        <tr>
+                            <td>Bass</td>
+                            <td className="track">{bassEl}</td>
+                        </tr>
+                        <tr>
+                            <td>Drums</td>
+                            <td className="track">{drumsEl}</td>
+                        </tr>
+                        <tr>
+                            <td>Other</td>
+                            <td className="track">{otherEl}</td>
+                        </tr>
+                        <tr>
+                            <td>Vocals</td>
+                            <td className="track">{vocalsEl}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         );
     }
 }
