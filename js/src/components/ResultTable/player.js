@@ -1,5 +1,4 @@
 import React from "react";
-import Base64DataConverter from "./algorithm";
 
 class Player extends React.Component {
     constructor(props) {

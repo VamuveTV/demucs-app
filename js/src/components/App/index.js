@@ -1,5 +1,4 @@
 import React, { Fragment } from "react";
-import Loader from "react-loaders";
 
 import FileInput from "../FileInput";
 import ResultTable from "../ResultTable";
