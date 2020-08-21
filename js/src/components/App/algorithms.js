@@ -8,25 +8,25 @@ class DemucsAPI {
 
     ping() {
         return this.client
-            .algo("danielfrg/demucs/0.2.0?timeout=500")
+            .algo("danielfrg/demucs/0.2.0?timeout=600")
             .pipe({ ping: "" });
     }
 
     health() {
         return this.client
-            .algo("danielfrg/demucs/0.2.0?timeout=500")
+            .algo("danielfrg/demucs/0.2.0?timeout=600")
             .pipe({ health: "" });
     }
 
     load() {
         return this.client
-            .algo("danielfrg/demucs/0.2.0?timeout=500")
+            .algo("danielfrg/demucs/0.2.0?timeout=600")
             .pipe({ load: "" });
     }
 
     separate(base64_file) {
         return this.client
-            .algo("danielfrg/demucs/0.2.0")
+            .algo("danielfrg/demucs/0.2.0?timeout=600")
             .pipe({ predict: { base64: base64_file } });
     }
 }
