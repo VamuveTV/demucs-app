@@ -81,11 +81,25 @@ header {
     }
 }
 
-p.error {
-    display: inline-block;
-    font-size: 14px;
-    color: #fff;
-    white-space: pre-line;
+div.error {
+    text-align: center;
+
+    p {
+        font-size: 14px;
+        white-space: pre-line;
+    }
+    // p.error {
+    //     display: inline-block;
+    //     font-size: 14px;
+    //     color: #fff;
+    //     white-space: pre-line;
+    // }
+
+    p.stacktrace {
+        text-align: left;
+        font-size: 14px;
+        white-space: pre-line;
+    }
 }
 
 main {

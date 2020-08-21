@@ -17,11 +17,18 @@ class App extends React.Component {
         //     vocals: "670f09de-0c8a-4108-bab1-c3553cf2ee09-vocals.mp3",
         // };
 
+        // const testError = {
+        //         error_type: "TestError",
+        //         message: "Test message",
+        //         stacktrace: "From ... \nmore code",
+        //     }
+
         this.state = {
             apiStatus: "init",
             results: "",
             // results: testResults,
             error: "",
+            // error: testError,
             converting: false,
         };
     }
@@ -34,7 +41,6 @@ class App extends React.Component {
                     error: response.error,
                 });
             } else {
-                console.log(response);
                 if (response.result.status == "live") {
                     this.setState({ apiStatus: "loading" });
 
@@ -73,12 +79,10 @@ class App extends React.Component {
             this.setState({ converting: true });
             this.client.separate(base64_file).then((response) => {
                 if (response.error) {
-                    console.error("Error: " + response.error);
                     this.setState({
                         error: response.error,
                     });
                 } else {
-                    console.log(response);
                     this.setState({
                         converting: false,
                         results: response.result,
@@ -109,7 +113,7 @@ class App extends React.Component {
             </div>
         );
 
-        const apiStatus = (
+        const statusEl = (
             <div className="status-line">
                 <p className="api-status">API Status: {statusText}</p>
                 {this.state.apiStatus == "ready" ||
@@ -126,45 +130,52 @@ class App extends React.Component {
             ) {
                 return (
                     <Fragment>
-                        {apiStatus}
-                        <p className="error">Error: {this.state.error}</p>
+                        {statusEl}
+                        <div className="error">
+                            <p>Error: {this.state.error}</p>
+                        </div>
                     </Fragment>
                 );
             } else {
                 return (
                     <Fragment>
-                        {apiStatus}
-                        <p className="error">
-                            {this.state.error.error_type
-                                ? this.state.error.error_type
-                                : "Error"}
-                            : {this.state.error.message}
-                        </p>
-                        <p className="error text-left">
-                            {this.state.error.stacktrace}
-                        </p>
+                        {statusEl}
+                        <div className="error">
+                            <p>
+                                {this.state.error.error_type
+                                    ? this.state.error.error_type
+                                    : "Error"}
+                                : {this.state.error.message}
+                            </p>
+                            <p className="stacktrace">
+                                {this.state.error.stacktrace}
+                            </p>
+                        </div>
                     </Fragment>
                 );
             }
         }
 
-        let results = "";
+        let resultsEl = "";
         if (this.state.converting === true) {
-            results = <div className="loader">... converting ...</div>;
+            resultsEl = <div className="loader">... converting ...</div>;
         } else if (this.state.results) {
-            results = (
+            resultsEl = (
                 <ResultTable client={this.client} {...this.state.results} />
             );
         }
 
         return (
             <React.Fragment>
-                {apiStatus}
+                {statusEl}
                 <FileInput
-                    enabled={this.state.apiStatus == "ready"}
+                    enabled={
+                        this.state.apiStatus == "ready" &&
+                        !this.state.converting
+                    }
                     request={this.request}
                 />
-                {results}
+                {resultsEl}
             </React.Fragment>
         );
     }

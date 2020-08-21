@@ -14,8 +14,6 @@ class Player extends React.Component {
         const { client, algoFilePath } = this.props;
 
         client.getFile(algoFilePath).then((output) => {
-            // console.log(source);
-            console.log(output);
             this.setState({
                 loading: false,
                 result: output.result,

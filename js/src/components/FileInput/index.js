@@ -21,7 +21,6 @@ class FileInput extends React.Component {
             return;
         }
 
-        console.log(`Selected file: ${file.name}`);
         this.props.request(file);
     }
 
