@@ -135,10 +135,14 @@ main {
             table-layout: fixed;
 
             td.track {
-                width: 300px;
-                max-width: 300px;
-                min-width: 300px;
+                width: 500px;
+                max-width: 500px;
+                min-width: 500px;
             }
+        }
+
+        audio {
+            width: 500px;
         }
 
         .spinner-border {
