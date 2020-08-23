@@ -71,6 +71,10 @@ header {
         white-space: pre-line;
     }
 
+    p.api-status {
+        margin-bottom: 0;
+    }
+
     .spinner-border {
         width: 10px;
         height: 10px;
@@ -88,12 +92,6 @@ div.error {
         font-size: 14px;
         white-space: pre-line;
     }
-    // p.error {
-    //     display: inline-block;
-    //     font-size: 14px;
-    //     color: #fff;
-    //     white-space: pre-line;
-    // }
 
     p.stacktrace {
         text-align: left;
@@ -114,9 +112,22 @@ main {
         }
     }
 
+    .content {
+        margin: 20px auto 20px;
+    }
+
+    .examples {
+        margin: 10px auto;
+    }
+
+    .share-url {
+        font-size: 10px;
+        margin: 5px auto;
+    }
+
     .results {
         background: #393e46;
-        margin: 25px auto 20px;
+        // margin: 25px auto 20px;
         padding: 20px;
 
         table {
@@ -167,6 +178,7 @@ footer {
     height: 4em;
 }
 .loader {
+    height: 5em;
     color: #ffffff;
     text-indent: -9999em;
     margin: 20px auto;

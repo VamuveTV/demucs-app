@@ -80,7 +80,9 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
     def cached(self, fpath):
         """
         Checks if this file has already been processed
-        and if it has returns the same format as model.separate()
+        and if it has returns the same format as self.predict()
+
+        The output changes if this is run on algorithmia or not
 
         Returns
         -------
@@ -97,15 +99,18 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
             if algorithmia_utils.in_algorithmia:
                 username = "danielfrg"
                 collection = "demucs_output"
+                fname = f"{unique_id}-{source}.mp3"
                 file_exists = algorithmia_utils.exists(
-                    username=username,
-                    collection=collection,
-                    fname=f"{unique_id}-{source}.mp3",
+                    username=username, collection=collection, fname=fname,
                 )
                 source_exists.append(file_exists)
+
+                # Change output if in algorithmia
+                output[source] = fname
             else:
-                fpath = f"./separated/{unique_id}/{source}.mp3"
                 source_exists.append(os.path.exists(fpath))
+                fpath = os.path.join(self.output_dir, f"{unique_id}/{source}.mp3")
+                output[source] = fpath
 
         if not all(source_exists):
             output = None
@@ -129,20 +134,18 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
             generated_files = self.model.separate(fpath, output_dir=output_dir)
 
             if algorithmia_utils.in_algorithmia:
-                fname = os.path.basename(file)
-                key = f"{unique_id}-{fname}"
-                file = os.path.join(output_dir, file)
-                algorithmia_utils.upload_file(
-                    file, username="danielfrg", collection="demucs_output", fname=key
-                )
+                for source_name, file in generated_files.items():
+                    fname = os.path.basename(file)
+                    key = f"{unique_id}-{fname}"
+                    algorithmia_utils.upload_file(
+                        file,
+                        username="danielfrg",
+                        collection="demucs_output",
+                        fname=key,
+                    )
 
-        for source_name, file in generated_files.items():
-            if algorithmia_utils.in_algorithmia:
-                fname = os.path.basename(file)
-                key = f"{unique_id}-{fname}"
-                generated_files[source_name] = key
-            else:
-                generated_files[source_name] = os.path.join(output_dir, file)
+                    # Change output if in algorithmia
+                    generated_files[source_name] = key
 
         generated_files["id"] = unique_id
         return generated_files

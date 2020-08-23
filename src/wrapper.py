@@ -85,15 +85,13 @@ class Demucs(object):
             source = source.cpu().transpose(0, 1).numpy()
 
             if self.mp3:
-                out_name = f"{source_name}.mp3"
                 local_file = os.path.join(output_dir, f"{source_name}.mp3")
                 self.encode_mp3(source, local_file, verbose=self.verbose)
             else:
-                out_name = f"{source_name}.wav"
                 local_file = os.path.join(output_dir, f"{source_name}.wav")
                 wavfile.write(local_file, 44100, source)
 
-            gen_files[source_name] = out_name
+            gen_files[source_name] = local_file
 
         return gen_files
 
