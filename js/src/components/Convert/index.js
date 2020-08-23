@@ -174,6 +174,10 @@ class Convert extends React.Component {
                         <Link to="/s/2d8183e9aa2e73f92ae5af614dd539d26a42685bd6ba441643e5f9c37e3703e1">
                             Mix 2
                         </Link>
+                        ,{" "}
+                        <Link to="/s/c0a2c345ead4878850d33501d94c41336dd4b8887e9f1de5d14e6fb5810c7c7c">
+                            Trap
+                        </Link>
                     </p>
 
                     {this.state.converting === true ? (
