@@ -7,7 +7,7 @@ import subprocess
 import Algorithmia
 from Algorithmia.errors import AlgorithmException
 
-algo_client = Algorithmia.client()
+client = Algorithmia.client()
 in_algorithmia = True if os.environ.get("ALGORITHMIA_API", False) else False
 
 
@@ -115,7 +115,7 @@ def get_file(remote_fpath):
 
     if remote_fpath.startswith("data://"):
         # Download from Algoritmia hosted data
-        local_fpath = algo_client.file(remote_fpath).getFile().name
+        local_fpath = client.file(remote_fpath).getFile().name
 
         if basename.endswith(".tar.gz"):
             output_dir = extract_tar_gz(fname)
@@ -148,7 +148,7 @@ def upload_file(
         new_dir.create()
 
     remote_file = f"{connector}://{username}/{collection}/{fname}"
-    algo_client.file(remote_file).putFile(local_filename)
+    client.file(remote_file).putFile(local_filename)
     return remote_file
 
 
