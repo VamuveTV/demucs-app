@@ -133,9 +133,11 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
                 fname = os.path.basename(file)
                 key = f"{unique_id}-{fname}"
 
+                file = os.path.join(output_dir, file)
                 algorithmia_utils.upload_file(
                     file, username="danielfrg", collection="demucs_output", fname=key
                 )
+
                 generated_files[source_name] = key
             else:
                 generated_files[source_name] = os.path.join(output_dir, file)
