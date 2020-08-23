@@ -7,15 +7,11 @@ class DemucsAPI {
     }
 
     ping() {
-        return this.client
-            .algo("danielfrg/demucs/0.2.0?timeout=600")
-            .pipe({ ping: "" });
+        return this.client.algo("danielfrg/demucs/0.2.0").pipe({ ping: "" });
     }
 
     health() {
-        return this.client
-            .algo("danielfrg/demucs/0.2.0?timeout=600")
-            .pipe({ health: "" });
+        return this.client.algo("danielfrg/demucs/0.2.0").pipe({ health: "" });
     }
 
     load() {

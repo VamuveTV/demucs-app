@@ -29,14 +29,12 @@ class Demucs(object):
         self.verbose = False
 
         if verify:
-            print("Verifying model...")
+            print("Verifying model")
             model_hash = MODELS.get(os.path.basename(model_fname))
             self.verify_file(fpath, model_hash)
 
         if load:
-            print("Loading model...")
             self.model = load_model(fpath).to(self.device)
-            print("Model loaded")
 
     def verify_file(self, target, file_hash):
         hasher = hashlib.sha256()
@@ -55,6 +53,13 @@ class Demucs(object):
             )
 
     def separate(self, track, output_dir):
+        """
+        Returns
+        -------
+            dictionary of {source_name: fname}
+                fname is a file inside the output_dir argument
+                e.g. {"bass": "bass.mp3", "drums": "drums.mp3"}
+        """
         wav = (
             AudioFile(track)
             .read(streams=0, samplerate=44100, channels=2)
@@ -70,26 +75,25 @@ class Demucs(object):
         )
         sources = sources * ref.std() + ref.mean()
 
-        source_names = ["drums", "bass", "other", "vocals"]
-
         gen_files = {}
-        for source, name in zip(sources, source_names):
+        source_names = ["drums", "bass", "other", "vocals"]
+        os.makedirs(output_dir, exist_ok=True)
+
+        for source_name, source in zip(source_names, sources):
             if self.mp3 or not self.float32:
                 source = (source * 2 ** 15).clamp_(-(2 ** 15), 2 ** 15 - 1).short()
             source = source.cpu().transpose(0, 1).numpy()
 
-            os.makedirs(output_dir, exist_ok=True)
-
             if self.mp3:
-                out_name = os.path.join(f"{name}.mp3")
-                local_file = os.path.join(output_dir, f"{name}.mp3")
+                out_name = f"{source_name}.mp3"
+                local_file = os.path.join(output_dir, f"{source_name}.mp3")
                 self.encode_mp3(source, local_file, verbose=self.verbose)
             else:
-                out_name = os.path.join(f"{name}.wav")
-                local_file = os.path.join(output_dir, f"{name}.wav")
+                out_name = f"{source_name}.wav"
+                local_file = os.path.join(output_dir, f"{source_name}.wav")
                 wavfile.write(local_file, 44100, source)
 
-            gen_files[name] = out_name
+            gen_files[source_name] = out_name
 
         return gen_files
 

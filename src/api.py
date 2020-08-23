@@ -3,6 +3,7 @@ import sys
 import uuid
 import base64
 import shutil
+import hashlib
 import zipfile
 import tempfile
 
@@ -22,6 +23,11 @@ except Exception:
 
 
 class DemucsAPI(algorithmia_utils.BaseAPI):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        self.output_dir = os.path.join(this_dir, "separated")
+
     def load_model(self):
         if algorithmia_utils.in_algorithmia:
             model_fpath = algorithmia_utils.get_file(
@@ -71,6 +77,41 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
             "ls_bin": subprocess.check_output(["ls", "-la", bin_dir]).decode("utf-8"),
         }
 
+    def cached(self, fpath):
+        """
+        Checks if this file has already been processed
+        and if it has returns the same format as model.separate()
+
+        Returns
+        -------
+            tuple of (unique_id, generated_files)
+        """
+        unique_id = hash_file(fpath)
+        sources = ["bass", "drums", "other", "vocals"]
+        source_exists = []
+        output = {}
+
+        for source in sources:
+            output[source] = f"{source}.mp3"
+
+            if algorithmia_utils.in_algorithmia:
+                username = "danielfrg"
+                collection = "demucs_output"
+                file_exists = algorithmia_utils.exists(
+                    username=username,
+                    collection=collection,
+                    fname=f"{unique_id}-{source}.mp3",
+                )
+                source_exists.append(file_exists)
+            else:
+                fpath = f"./separated/{unique_id}/{source}.mp3"
+                source_exists.append(os.path.exists(fpath))
+
+        if not all(source_exists):
+            output = None
+
+        return unique_id, output
+
     def predict(self, predict):
         if "fpath" in predict:
             fpath = predict["fpath"]
@@ -80,24 +121,41 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
         else:
             raise AlgorithmException("Invalid input json format")
 
-        unique_id = str(uuid.uuid4())
-        this_dir = os.path.dirname(os.path.realpath(__file__))
-        output_dir = os.path.join(this_dir, "separated", unique_id)
+        unique_id, generated_files = self.cached(fpath)
+        output_dir = os.path.join(self.output_dir, unique_id)
+        print(unique_id, generated_files)
+        if not generated_files:
+            os.makedirs(output_dir, exist_ok=True)
+            generated_files = self.model.separate(fpath, output_dir=output_dir)
 
-        generated_files = self.model.separate(fpath, output_dir=output_dir)
-
-        for key, value in generated_files.items():
-            generated_files[key] = os.path.join(output_dir, value)
-
-        if algorithmia_utils.in_algorithmia:
-            for source_name, file in generated_files.items():
+        for source_name, file in generated_files.items():
+            if algorithmia_utils.in_algorithmia:
                 fname = os.path.basename(file)
                 key = f"{unique_id}-{fname}"
 
-                algorithmia_utils.upload_file(file, key)
+                algorithmia_utils.upload_file(
+                    file, username="danielfrg", collection="demucs_output", fname=key
+                )
                 generated_files[source_name] = key
+            else:
+                generated_files[source_name] = os.path.join(output_dir, file)
 
+        generated_files["id"] = unique_id
         return generated_files
+
+
+def hash_file(target):
+    hasher = hashlib.sha256()
+
+    with open(target, "rb") as f:
+        while True:
+            data = f.read(65536)
+            if not data:
+                break
+            hasher.update(data)
+
+    signature = hasher.hexdigest()
+    return signature
 
 
 def base64_to_file(base64str):

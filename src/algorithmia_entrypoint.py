@@ -30,6 +30,6 @@ if __name__ == "__main__":
 
     # print(apply({"predict": {"fpath": "./tracks/mixture-1.mp3"}}))
 
-    with open("./tracks/mixture-1.txt") as f:
+    with open("./tracks/mixture-2.txt") as f:
         base64_content = f.read()
         print(apply({"predict": {"base64": base64_content}}))

@@ -57,16 +57,14 @@ class BaseAPI(object):
 
     def debug_info_all(self):
         data = {}
-
         data["env"] = dict(os.environ)
         data["sys_prefix"] = sys.prefix
-        data["in_algorithmia"] = in_algorithmia
-        data["pip_freeze"] = subprocess.check_output(["pip", "freeze"]).decode("utf-8")
-        data["which_python"] = shutil.which("python")
         data["whoami"] = getpass.getuser()
+        data["in_algorithmia"] = in_algorithmia
+        data["which_python"] = shutil.which("python")
+        data["pip_freeze"] = subprocess.check_output(["pip", "freeze"]).decode("utf-8")
 
         data.update(self.debug_info())
-
         return data
 
     def debug_info(self):
@@ -108,7 +106,7 @@ def get_file(remote_fpath):
     Download a file hosted on Algorithmia Hosted Data
 
     If the file ends with .tar.gz it will untar the file.
-    It's recommended that the tar files contains a single files compressed like:
+    It's recommended that the tar file contain a single files compressed like:
         tar -czvf model.format.tar.gz model.format
 
     Returns the local file path of the downloaded file
@@ -126,14 +124,33 @@ def get_file(remote_fpath):
 
         return local_fpath
 
+    return remote_fpath
+
+
+def exists(username, collection, fname=None, connector="data"):
+    if fname is None:
+        remote_file = f"{connector}://{username}/{collection}"
+        obj = client.dir(path)
+        return obj.exists()
+    else:
+        remote_file = f"{connector}://{username}/{collection}/{fname}"
+        obj = client.file(path)
+        return obj.exists()
+
 
 def upload_file(
     local_filename, username, collection, fname, connector="data",
 ):
+    dir_exists = exists(username=username, collection=collection, connector=connector)
+    if dir_exists is False:
+        dir_path = f"{connector}://{username}/{collection}/"
+        new_dir = client.dir(dir_path)
+        new_dir.create()
+
     remote_file = f"{connector}://{username}/{collection}/{fname}"
     algo_client.file(remote_file).putFile(local_filename)
     return remote_file
 
 
 if __name__ == "__main__":
-    print(extract_tar_gz("./models/text8.bin.tar.gz"))
+    print(extract_tar_gz("./models/demucs_extra.th.tar.gz"))
