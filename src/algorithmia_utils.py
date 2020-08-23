@@ -129,11 +129,11 @@ def get_file(remote_fpath):
 
 def exists(username, collection, fname=None, connector="data"):
     if fname is None:
-        remote_file = f"{connector}://{username}/{collection}"
+        path = f"{connector}://{username}/{collection}"
         obj = client.dir(path)
         return obj.exists()
     else:
-        remote_file = f"{connector}://{username}/{collection}/{fname}"
+        path = f"{connector}://{username}/{collection}/{fname}"
         obj = client.file(path)
         return obj.exists()
 
