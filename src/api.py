@@ -123,21 +123,23 @@ class DemucsAPI(algorithmia_utils.BaseAPI):
 
         unique_id, generated_files = self.cached(fpath)
         output_dir = os.path.join(self.output_dir, unique_id)
-        print(unique_id, generated_files)
+
         if not generated_files:
             os.makedirs(output_dir, exist_ok=True)
             generated_files = self.model.separate(fpath, output_dir=output_dir)
 
-        for source_name, file in generated_files.items():
             if algorithmia_utils.in_algorithmia:
                 fname = os.path.basename(file)
                 key = f"{unique_id}-{fname}"
-
                 file = os.path.join(output_dir, file)
                 algorithmia_utils.upload_file(
                     file, username="danielfrg", collection="demucs_output", fname=key
                 )
 
+        for source_name, file in generated_files.items():
+            if algorithmia_utils.in_algorithmia:
+                fname = os.path.basename(file)
+                key = f"{unique_id}-{fname}"
                 generated_files[source_name] = key
             else:
                 generated_files[source_name] = os.path.join(output_dir, file)
