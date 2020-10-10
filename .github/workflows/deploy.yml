@@ -32,7 +32,7 @@ jobs:
         with:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          build_directory: dist
+          build_directory: js/dist
 
       - name: Push website (master)
         uses: jsmrcaga/action-netlify-deploy@master
@@ -41,7 +41,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_DEPLOY_TO_PROD: true
-          build_directory: dist
+          build_directory: js/dist
 
       - name: Upload website
         uses: actions/upload-artifact@v1
