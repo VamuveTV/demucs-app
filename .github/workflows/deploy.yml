@@ -1,0 +1,51 @@
+name: deploy
+
+on:
+  push:
+    branches: [master]
+  pull_request_target:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - name: Install node
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: "12"
+
+      - name: Install deps
+        run: |
+          make npm-install
+
+      - name: Build website
+        run: |
+          make npm-build
+
+      - name: Push website (branch)
+        uses: jsmrcaga/action-netlify-deploy@master
+        if: github.event_name == 'pull_request_target'
+        with:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          build_directory: dist
+
+      - name: Push website (master)
+        uses: jsmrcaga/action-netlify-deploy@master
+        if: (github.event_name == 'push') && endsWith(github.ref, '/master')
+        with:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_DEPLOY_TO_PROD: true
+          build_directory: dist
+
+      - name: Upload website
+        uses: actions/upload-artifact@v1
+        if: always()
+        with:
+          name: website
+          path: js/dist
