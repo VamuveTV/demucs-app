@@ -1,4 +1,4 @@
-name: demucs-cpu
+name: demucs-app
 channels:
   - conda-forge
   - pytorch
