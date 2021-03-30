@@ -3,6 +3,8 @@
 [![Site](https://github.com/danielfrg/demucs-app/workflows/deploy/badge.svg)](https://demucs.danielfrg.com)
 [![License](https://img.shields.io/:license-Apache%202-blue.svg)](https://github.com/danielfrg/demucs/blob/master/LICENSE.txt)
 
+Music Source Separation: Separate a song into drums, bass, vocals and others.
+
 [Online App](https://demucs.danielfrg.dev/) -
 [Algorithm](https://algorithmia.com/algorithms/danielfrg/demucs)
 
