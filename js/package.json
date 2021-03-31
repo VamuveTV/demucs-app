@@ -5,16 +5,13 @@
     "author": "Daniel Rodriguez",
     "license": "Apache-2.0",
     "homepage": "https://github.com/danielfrg/demucs-app",
-    "bugs": {
-        "url": "https://github.com/danielfrg/demucs-app/issues"
-    },
     "repository": {
         "type": "git",
         "url": "https://github.com/danielfrg/demucs-app/js"
     },
-    "browserslist": [
-        "last 2 Chrome versions"
-    ],
+    "bugs": {
+        "url": "https://github.com/danielfrg/demucs-app/issues"
+    },
     "main": "src/main.js",
     "dependencies": {
         "react": "^16.13.1",
@@ -56,7 +53,7 @@
     },
     "scripts": {
         "dev": "webpack-dev-server --mode=development",
-        "dev:noserver": "webpack --watch --mode=development",
+        "dev:nowebserver": "webpack --watch --mode=development",
         "build": "webpack --mode=production",
         "build:watch": "webpack --mode=production --watch",
         "fmt": "prettier --write \"src/**/*.{js,jsx}\"",

@@ -11,6 +11,9 @@ PWD := $(shell pwd)
 first: help
 
 
+# ------------------------------------------------------------------------------
+# Build
+
 npm-i: npm-install
 npm-install:  ## npm install
 	cd $(CURDIR)/js; npm install
@@ -18,6 +21,7 @@ npm-install:  ## npm install
 
 npm-build:  ## npm build
 	cd $(CURDIR)/js; npm run build
+
 
 # ------------------------------------------------------------------------------
 # Other
